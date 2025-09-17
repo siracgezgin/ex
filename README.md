@@ -1,1231 +1,1302 @@
-# 🔌 API Dokümantasyonu
+# 🛠️ Geliştirme Rehberi
 
-> **Futbol Ligi Simülasyonu - Servisler, Modeller ve API Referansı**
+> **Futbol Ligi Simülasyonu - Geliştirme, Test ve Deployment Rehberi**
 
-Bu dokümantasyon, projedeki tüm servisler, veri modelleri ve API'ları detaylı olarak açıklar.
+Bu dokümantasyon, projenin geliştirme süreçlerini, test stratejilerini ve deployment adımlarını detaylı olarak açıklar.
 
 ## 📋 İçindekiler
 
-- [📊 Veri Modelleri](#-veri-modelleri)
-- [🔧 Servisler](#-servisler)
-- [🎯 NgRx Actions](#-ngrx-actions)
-- [📈 NgRx Selectors](#-ngrx-selectors)
-- [⚡ NgRx Effects](#-ngrx-effects)
-- [🔄 NgRx Reducers](#-ngrx-reducers)
-- [🎨 Component API'ları](#-component-apilari)
-- [📝 Type Definitions](#-type-definitions)
-- [🔍 Utility Functions](#-utility-functions)
+- [🚀 Geliştirme Ortamı](#-geliştirme-ortamı)
+- [📦 Proje Kurulumu](#-proje-kurulumu)
+- [🔧 Geliştirme Araçları](#-geliştirme-araçları)
+- [🧪 Test Stratejisi](#-test-stratejisi)
+- [📊 Performans Optimizasyonu](#-performans-optimizasyonu)
+- [🎨 Stil Geliştirme](#-stil-geliştirme)
+- [🔍 Debugging](#-debugging)
+- [📱 Responsive Geliştirme](#-responsive-geliştirme)
+- [🚀 Build ve Deployment](#-build-ve-deployment)
+- [📚 Best Practices](#-best-practices)
+- [🐛 Troubleshooting](#-troubleshooting)
 
 ---
 
-## 📊 Veri Modelleri
+## 🚀 Geliştirme Ortamı
 
-### 🏆 Team Model
+### 📋 Sistem Gereksinimleri
 
-```typescript
-export interface Team {
-  id: number;           // Takım ID'si (benzersiz)
-  name: string;         // Takım adı
-  strength: number;     // Takım gücü (0.3-1.0 arası)
-  color: string;        // Takım ana rengi (hex)
-  logo: string;         // Logo dosya yolu
-}
+#### **Minimum Gereksinimler:**
+- **Node.js**: 18.x veya üzeri
+- **npm**: 9.x veya üzeri
+- **Angular CLI**: 20.x
+- **RAM**: 8GB (önerilen 16GB)
+- **Disk**: 2GB boş alan
 
-export interface TeamStats {
-  team: Team;           // Takım bilgisi
-  position: number;     // Lig sıralaması (1-4)
-  played: number;       // Oynanan maç sayısı
-  won: number;          // Galibiyet sayısı
-  drawn: number;        // Beraberlik sayısı
-  lost: number;         // Mağlubiyet sayısı
-  goalsFor: number;     // Attığı gol sayısı
-  goalsAgainst: number; // Yediği gol sayısı
-  goalDifference: number; // Averaj (goalsFor - goalsAgainst)
-  points: number;       // Toplam puan
-}
+#### **Önerilen Geliştirme Ortamı:**
+- **OS**: Windows 11, macOS 12+, Ubuntu 20.04+
+- **IDE**: Visual Studio Code
+- **Browser**: Chrome 120+, Firefox 120+, Safari 16+
+- **Git**: 2.40+
+
+### 🎯 Node.js Kurulumu
+
+#### **Windows:**
+```bash
+# Node.js resmi sitesinden indirin
+# https://nodejs.org/
+
+# veya Chocolatey ile
+choco install nodejs
+
+# veya winget ile
+winget install OpenJS.NodeJS
 ```
 
-**Örnek Kullanım:**
-```typescript
-const team: Team = {
-  id: 1,
-  name: 'Galatasaray',
-  strength: 0.8,
-  color: '#FFD700',
-  logo: 'assets/logos/galatasaray.png'
-};
+#### **macOS:**
+```bash
+# Homebrew ile
+brew install node
 
-const teamStats: TeamStats = {
-  team: team,
-  position: 1,
-  played: 6,
-  won: 4,
-  drawn: 1,
-  lost: 1,
-  goalsFor: 12,
-  goalsAgainst: 6,
-  goalDifference: 6,
-  points: 13
-};
+# veya nvm ile
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+nvm install 20
+nvm use 20
 ```
 
-### ⚽ Match Model
+#### **Linux (Ubuntu/Debian):**
+```bash
+# NodeSource repository ekleyin
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 
-```typescript
-export interface Match {
-  id: number;                    // Maç ID'si (benzersiz)
-  homeTeam: Team;               // Ev sahibi takım
-  awayTeam: Team;               // Deplasman takımı
-  homeScore: number | null;     // Ev sahibi skoru
-  awayScore: number | null;     // Deplasman skoru
-  isPlayed: boolean;            // Maç oynandı mı?
-  week: number;                 // Hafta numarası (1-6)
-  date: Date;                   // Maç tarihi
-}
-
-export interface WeekMatches {
-  week: number;         // Hafta numarası
-  matches: Match[];     // O haftaki maçlar
-}
-
-export interface MatchResult {
-  homeScore: number;    // Ev sahibi skoru
-  awayScore: number;    // Deplasman skoru
-  isPlayed: boolean;    // Maç oynandı mı?
-}
+# Node.js kurun
+sudo apt-get install -y nodejs
 ```
 
-**Örnek Kullanım:**
-```typescript
-const match: Match = {
-  id: 1,
-  homeTeam: galatasaray,
-  awayTeam: fenerbahce,
-  homeScore: 2,
-  awayScore: 1,
-  isPlayed: true,
-  week: 1,
-  date: new Date('2024-01-15')
-};
+### 🎯 Angular CLI Kurulumu
 
-const weekMatches: WeekMatches = {
-  week: 1,
-  matches: [match1, match2]
-};
-```
+```bash
+# Global olarak Angular CLI kurun
+npm install -g @angular/cli@20
 
-### 🏅 League State Model
+# Versiyonu kontrol edin
+ng version
 
-```typescript
-export interface LeagueState {
-  teams: Team[];              // Takım listesi
-  matches: Match[];           // Tüm maçlar
-  currentWeek: number;        // Mevcut hafta (1-6)
-  totalWeeks: number;         // Toplam hafta sayısı (6)
-  standings: TeamStats[];     // Puan tablosu
-  weeklyMatches: WeekMatches[]; // Haftalık maçlar
-  isSeasonFinished: boolean;  // Sezon bitti mi?
-  champion: Team | null;      // Şampiyon takım
-  loading: boolean;           // Yükleniyor mu?
-  error: string | null;       // Hata mesajı
-}
-
-export const initialLeagueState: LeagueState = {
-  teams: [],
-  matches: [],
-  currentWeek: 1,
-  totalWeeks: 6,
-  standings: [],
-  weeklyMatches: [],
-  isSeasonFinished: false,
-  champion: null,
-  loading: false,
-  error: null
-};
-```
-
-### 🎯 League Constants
-
-```typescript
-export const LEAGUE_CONSTANTS = {
-  TOTAL_TEAMS: 4,       // Toplam takım sayısı
-  TOTAL_WEEKS: 6,       // Toplam hafta sayısı
-  MATCHES_PER_WEEK: 2,  // Haftalık maç sayısı
-  POINTS_WIN: 3,        // Galibiyet puanı
-  POINTS_DRAW: 1,       // Beraberlik puanı
-  POINTS_LOSS: 0,       // Mağlubiyet puanı
-  MIN_STRENGTH: 0.3,    // Minimum takım gücü
-  MAX_STRENGTH: 1.0     // Maksimum takım gücü
-};
+# Yardım komutlarını görün
+ng help
 ```
 
 ---
 
-## 🔧 Servisler
+## 📦 Proje Kurulumu
 
-### 🎮 LeagueSimulationService
+### 🚀 İlk Kurulum
 
-**Amaç:** Lig simülasyonu ve maç hesaplamaları
+#### **1. Projeyi Klonlayın:**
+```bash
+git clone <repository-url>
+cd angular-football-league-simulation-main
+```
 
-```typescript
-@Injectable({
-  providedIn: 'root'
-})
-export class LeagueSimulationService {
-  
-  /**
-   * Tek bir maçı simüle eder
-   * @param homeTeam - Ev sahibi takım
-   * @param awayTeam - Deplasman takımı
-   * @returns MatchResult - Maç sonucu
-   */
-  simulateMatch(homeTeam: Team, awayTeam: Team): MatchResult {
-    const homeStrength = homeTeam.strength;
-    const awayStrength = awayTeam.strength;
-    
-    // Ev sahibi avantajı (+0.1)
-    const adjustedHomeStrength = homeStrength + 0.1;
-    
-    // Skor hesaplama
-    const homeScore = this.calculateScore(adjustedHomeStrength, true);
-    const awayScore = this.calculateScore(awayStrength, false);
-    
-    return {
-      homeScore,
-      awayScore,
-      isPlayed: true
-    };
+#### **2. Bağımlılıkları Yükleyin:**
+```bash
+npm install
+```
+
+#### **3. Geliştirme Sunucusunu Başlatın:**
+```bash
+npm start
+# veya
+ng serve
+```
+
+#### **4. Tarayıcıda Açın:**
+```
+http://localhost:4200
+```
+
+### 🔧 Konfigürasyon Dosyaları
+
+#### **package.json:**
+```json
+{
+  "name": "futbol-ligi-simulasyonu",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "ng serve",
+    "build": "ng build",
+    "build:prod": "ng build --configuration production",
+    "test": "ng test",
+    "test:watch": "ng test --watch",
+    "test:coverage": "ng test --code-coverage",
+    "lint": "ng lint",
+    "e2e": "ng e2e",
+    "watch": "ng build --watch"
+  },
+  "dependencies": {
+    "@angular/core": "^20.0.0",
+    "@angular/common": "^20.0.0",
+    "@ngrx/store": "^20.0.0",
+    "@ngrx/effects": "^20.0.0",
+    "rxjs": "^7.8.1",
+    "primeng": "^19.0.0",
+    "tailwindcss": "^3.0.0"
+  },
+  "devDependencies": {
+    "@angular/cli": "^20.0.0",
+    "@angular-devkit/build-angular": "^20.0.0",
+    "typescript": "^5.9.0",
+    "karma": "^6.4.0",
+    "jasmine": "^5.1.0"
   }
-  
-  /**
-   * Belirli haftanın maçlarını simüle eder
-   * @param weekMatches - Haftalık maçlar
-   * @returns Observable<Match[]> - Simüle edilmiş maçlar
-   */
-  simulateWeekMatches(weekMatches: WeekMatches): Observable<Match[]> {
-    return of(weekMatches.matches.map(match => ({
-      ...match,
-      ...this.simulateMatch(match.homeTeam, match.awayTeam)
-    })));
-  }
-  
-  /**
-   * Puan tablosunu hesaplar
-   * @param teams - Takım listesi
-   * @param matches - Tüm maçlar
-   * @returns TeamStats[] - Puan tablosu
-   */
-  calculateStandings(teams: Team[], matches: Match[]): TeamStats[] {
-    return teams.map(team => this.calculateTeamStats(team, matches));
-  }
-  
-  /**
-   * Takım istatistiklerini hesaplar
-   * @param team - Takım
-   * @param matches - Tüm maçlar
-   * @returns TeamStats - Takım istatistikleri
-   */
-  private calculateTeamStats(team: Team, matches: Match[]): TeamStats {
-    const teamMatches = matches.filter(match => 
-      match.homeTeam.id === team.id || match.awayTeam.id === team.id
-    );
-    
-    let played = 0, won = 0, drawn = 0, lost = 0;
-    let goalsFor = 0, goalsAgainst = 0;
-    
-    teamMatches.forEach(match => {
-      if (match.isPlayed && match.homeScore !== null && match.awayScore !== null) {
-        played++;
-        
-        const isHome = match.homeTeam.id === team.id;
-        const teamScore = isHome ? match.homeScore : match.awayScore;
-        const opponentScore = isHome ? match.awayScore : match.homeScore;
-        
-        goalsFor += teamScore;
-        goalsAgainst += opponentScore;
-        
-        if (teamScore > opponentScore) won++;
-        else if (teamScore === opponentScore) drawn++;
-        else lost++;
+}
+```
+
+#### **angular.json:**
+```json
+{
+  "projects": {
+    "futbol-ligi-simulasyonu": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss",
+          "standalone": true
+        }
+      },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/futbol-ligi-simulasyonu",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": "src/polyfills.ts",
+            "tsConfig": "tsconfig.app.json",
+            "assets": ["src/favicon.ico", "src/assets"],
+            "styles": ["src/styles.scss"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "outputHashing": "all"
+            }
+          }
+        }
       }
+    }
+  }
+}
+```
+
+---
+
+## 🔧 Geliştirme Araçları
+
+### 🎯 VS Code Eklentileri
+
+#### **Gerekli Eklentiler:**
+```json
+{
+  "recommendations": [
+    "angular.ng-template",
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-json",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-eslint",
+    "bradlc.vscode-tailwindcss"
+  ]
+}
+```
+
+#### **VS Code Ayarları:**
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "emmet.includeLanguages": {
+    "typescript": "html"
+  },
+  "tailwindCSS.includeLanguages": {
+    "typescript": "html"
+  }
+}
+```
+
+### 🎯 TypeScript Konfigürasyonu
+
+#### **tsconfig.json:**
+```json
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "useDefineForClassFields": false,
+    "lib": ["ES2022", "dom"]
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  }
+}
+```
+
+### 🎯 ESLint Konfigürasyonu
+
+#### **.eslintrc.json:**
+```json
+{
+  "root": true,
+  "ignorePatterns": ["projects/**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "extends": [
+        "eslint:recommended",
+        "@typescript-eslint/recommended",
+        "@angular-eslint/template/process-inline-templates"
+      ],
+      "rules": {
+        "@angular-eslint/directive-selector": [
+          "error",
+          {
+            "type": "attribute",
+            "prefix": "app",
+            "style": "camelCase"
+          }
+        ],
+        "@angular-eslint/component-selector": [
+          "error",
+          {
+            "type": "element",
+            "prefix": "app",
+            "style": "kebab-case"
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.html"],
+      "extends": ["@angular-eslint/template/recommended"],
+      "rules": {}
+    }
+  ]
+}
+```
+
+---
+
+## 🧪 Test Stratejisi
+
+### 🎯 Test Türleri
+
+#### **1. Unit Tests (Birim Testler)**
+```typescript
+// league-dashboard.component.spec.ts
+describe('LeagueDashboardComponent', () => {
+  let component: LeagueDashboardComponent;
+  let fixture: ComponentFixture<LeagueDashboardComponent>;
+  let store: MockStore<AppState>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [LeagueDashboardComponent],
+      providers: [
+        provideMockStore({
+          initialState: {
+            league: {
+              teams: mockTeams,
+              matches: mockMatches,
+              standings: mockStandings,
+              currentWeek: 1,
+              totalWeeks: 6,
+              isSeasonFinished: false,
+              champion: null,
+              loading: false,
+              error: null
+            }
+          }
+        })
+      ]
     });
     
-    const points = won * LEAGUE_CONSTANTS.POINTS_WIN + 
-                   drawn * LEAGUE_CONSTANTS.POINTS_DRAW + 
-                   lost * LEAGUE_CONSTANTS.POINTS_LOSS;
-    
-    return {
-      team,
-      position: 0, // Sıralama ayrıca hesaplanacak
-      played,
-      won,
-      drawn,
-      lost,
-      goalsFor,
-      goalsAgainst,
-      goalDifference: goalsFor - goalsAgainst,
-      points
-    };
-  }
-  
-  /**
-   * Skor hesaplama algoritması
-   * @param strength - Takım gücü
-   * @param isHome - Ev sahibi mi?
-   * @returns number - Skor
-   */
-  private calculateScore(strength: number, isHome: boolean): number {
-    const baseScore = Math.floor(strength * 3); // 0-3 arası skor
-    const randomFactor = Math.random();
-    
-    if (randomFactor < 0.1) return 0; // %10 şans 0 gol
-    if (randomFactor < 0.4) return Math.max(0, baseScore - 1); // %30 şans -1 gol
-    if (randomFactor < 0.8) return baseScore; // %40 şans normal skor
-    return Math.min(5, baseScore + 1); // %20 şans +1 gol (max 5)
-  }
-}
-```
+    fixture = TestBed.createComponent(LeagueDashboardComponent);
+    component = fixture.componentInstance;
+    store = TestBed.inject(MockStore);
+  });
 
----
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
 
-## 🎯 NgRx Actions
+  it('should calculate played matches correctly', () => {
+    component.currentWeekMatches = mockWeekMatches;
+    const playedMatches = component.getPlayedMatches();
+    expect(playedMatches).toBe(2);
+  });
 
-### 📝 Action Definitions
+  it('should return correct button text for first week', () => {
+    spyOn(component, 'getPlayedMatches').and.returnValue(0);
+    const buttonText = component.getNextWeekButtonText();
+    expect(buttonText).toBe('1. Hafta Ligi Başlat');
+  });
 
-```typescript
-// league.actions.ts
-export const LeagueActions = createActionGroup({
-  source: 'League',
-  events: {
-    // Lig başlatma
-    'Initialize League': emptyProps(),
-    'Initialize League Success': props<{ teams: Team[]; matches: Match[] }>(),
-    'Initialize League Failure': props<{ error: string }>(),
-    
-    // Haftalık maçlar
-    'Play Specific Week': props<{ week: number }>(),
-    'Play Specific Week Success': props<{ matches: Match[] }>(),
-    'Play Specific Week Failure': props<{ error: string }>(),
-    
-    // Tüm sezon
-    'Play All Season': emptyProps(),
-    'Play All Season Success': props<{ matches: Match[]; champion: Team }>(),
-    'Play All Season Failure': props<{ error: string }>(),
-    
-    // Lig sıfırlama
-    'Reset League': emptyProps(),
-    'Reset League Success': emptyProps(),
-    
-    // Maç sonucu düzenleme
-    'Edit Match Result': props<{ matchId: number; homeScore: number; awayScore: number }>(),
-    'Edit Match Result Success': props<{ match: Match }>(),
-    'Edit Match Result Failure': props<{ error: string }>(),
-    
-    // UI durumu
-    'Set Loading': props<{ loading: boolean }>(),
-    'Set Error': props<{ error: string | null }>()
-  }
+  it('should dispatch playSpecificWeek action', () => {
+    spyOn(store, 'dispatch');
+    component.playSpecificWeek(1);
+    expect(store.dispatch).toHaveBeenCalledWith(
+      LeagueActions.playSpecificWeek({ week: 1 })
+    );
+  });
 });
 ```
 
-### 🎯 Action Usage Examples
-
+#### **2. Integration Tests (Entegrasyon Testleri)**
 ```typescript
-// Component'te kullanım
+// league-simulation.integration.spec.ts
+describe('League Simulation Integration', () => {
+  let service: LeagueSimulationService;
+  let store: Store<AppState>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        LeagueSimulationService,
+        provideStore({ league: leagueReducer }),
+        provideEffects([LeagueEffects])
+      ]
+    });
+    
+    service = TestBed.inject(LeagueSimulationService);
+    store = TestBed.inject(Store);
+  });
+
+  it('should play all matches and determine champion', (done) => {
+    // Test data
+    const teams = mockTeams;
+    const matches = mockMatches;
+    
+    // Dispatch initialize league
+    store.dispatch(LeagueActions.initializeLeagueSuccess({ teams, matches }));
+    
+    // Play all season
+    store.dispatch(LeagueActions.playAllSeason());
+    
+    // Wait for effects to complete
+    setTimeout(() => {
+      const state = store.selectSnapshot(selectLeagueState);
+      expect(state.isSeasonFinished).toBe(true);
+      expect(state.champion).toBeTruthy();
+      expect(state.standings.length).toBe(4);
+      done();
+    }, 1000);
+  });
+});
+```
+
+#### **3. E2E Tests (End-to-End Testler)**
+```typescript
+// e2e/src/app.e2e-spec.ts
+describe('Futbol Ligi Simülasyonu', () => {
+  beforeEach(() => {
+    cy.visit('/');
+  });
+
+  it('should display league dashboard', () => {
+    cy.get('app-league-dashboard').should('be.visible');
+    cy.get('h1').should('contain', 'Futbol Ligi Simülasyonu');
+  });
+
+  it('should start league and play matches', () => {
+    // Start league
+    cy.get('button').contains('1. Hafta Ligi Başlat').click();
+    
+    // Wait for matches to load
+    cy.get('app-match-results').should('be.visible');
+    
+    // Check standings table
+    cy.get('app-standings-table').should('be.visible');
+    cy.get('tbody tr').should('have.length', 4);
+  });
+
+  it('should display champion celebration', () => {
+    // Play all season
+    cy.get('button').contains('Tüm Sezonu Oyna').click();
+    
+    // Wait for season to finish
+    cy.get('app-champion-celebration', { timeout: 10000 }).should('be.visible');
+    cy.get('.champion-name').should('be.visible');
+  });
+});
+```
+
+### 🎯 Test Komutları
+
+```bash
+# Unit testleri çalıştır
+npm test
+
+# Test coverage raporu
+npm run test:coverage
+
+# E2E testleri çalıştır
+npm run e2e
+
+# Test watch mode
+npm run test:watch
+
+# Lint kontrolü
+npm run lint
+```
+
+### 🎯 Test Coverage
+
+#### **Coverage Konfigürasyonu:**
+```json
+// karma.conf.js
+module.exports = function (config) {
+  config.set({
+    coverageReporter: {
+      dir: require('path').join(__dirname, './coverage/futbol-ligi-simulasyonu'),
+      subdir: '.',
+      reporters: [
+        { type: 'html' },
+        { type: 'text-summary' },
+        { type: 'lcov' }
+      ],
+      check: {
+        global: {
+          statements: 80,
+          branches: 80,
+          functions: 80,
+          lines: 80
+        }
+      }
+    }
+  });
+};
+```
+
+---
+
+## 📊 Performans Optimizasyonu
+
+### 🚀 Change Detection Optimizasyonu
+
+#### **OnPush Strategy:**
+```typescript
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
 export class LeagueDashboardComponent {
-  constructor(private store: Store<AppState>) {}
+  // Component sadece input değişikliklerinde güncellenir
+}
+```
+
+#### **Manual Change Detection:**
+```typescript
+constructor(private cdr: ChangeDetectorRef) {}
+
+updateView() {
+  this.cdr.markForCheck();
+}
+
+detachView() {
+  this.cdr.detach();
+}
+
+reattachView() {
+  this.cdr.reattach();
+}
+```
+
+### 🎯 Lazy Loading
+
+#### **Route-based Lazy Loading:**
+```typescript
+const routes: Routes = [
+  {
+    path: 'league',
+    loadComponent: () => import('./league/league-dashboard.component')
+      .then(m => m.LeagueDashboardComponent)
+  }
+];
+```
+
+#### **Dynamic Component Loading:**
+```typescript
+async loadChampionCelebration() {
+  const { ChampionCelebrationComponent } = await import('./champion-celebration.component');
+  // Component'i dinamik olarak yükle
+}
+```
+
+### 📦 Bundle Optimization
+
+#### **Tree Shaking:**
+```typescript
+// Sadece kullanılan PrimeNG modülleri import edin
+import { CardModule } from 'primeng/card';
+import { ButtonModule } from 'primeng/button';
+// Tüm PrimeNG import etmeyin
+```
+
+#### **Code Splitting:**
+```typescript
+// Dynamic imports
+const StandingsTableComponent = () => import('./standings-table.component');
+```
+
+### 🎯 Memory Management
+
+#### **Subscription Management:**
+```typescript
+export class LeagueDashboardComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
   
-  // Lig başlatma
-  initializeLeague() {
-    this.store.dispatch(LeagueActions.initializeLeague());
+  ngOnInit() {
+    this.store.select(selectCurrentStandings)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(standings => {
+        // Handle standings
+      });
   }
   
-  // Haftalık maç oynatma
-  playSpecificWeek(week: number) {
-    this.store.dispatch(LeagueActions.playSpecificWeek({ week }));
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+}
+```
+
+#### **Object Pooling:**
+```typescript
+// Büyük objeler için object pooling
+class MatchPool {
+  private pool: Match[] = [];
+  
+  getMatch(): Match {
+    return this.pool.pop() || new Match();
   }
   
-  // Tüm sezonu oynatma
-  playAllSeason() {
-    this.store.dispatch(LeagueActions.playAllSeason());
-  }
-  
-  // Lig sıfırlama
-  resetLeague() {
-    this.store.dispatch(LeagueActions.resetLeague());
-  }
-  
-  // Maç sonucu düzenleme
-  editMatchResult(matchId: number, homeScore: number, awayScore: number) {
-    this.store.dispatch(LeagueActions.editMatchResult({ 
-      matchId, 
-      homeScore, 
-      awayScore 
-    }));
+  returnMatch(match: Match) {
+    this.pool.push(match);
   }
 }
 ```
 
 ---
 
-## 📈 NgRx Selectors
+## 🎨 Stil Geliştirme
 
-### 🎯 Selector Definitions
+### 🎯 Tailwind CSS
 
-```typescript
-// league.selectors.ts
-export const selectLeagueState = createFeatureSelector<LeagueState>('league');
+#### **Utility Classes:**
+```css
+/* Responsive design */
+.responsive-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+}
 
-// Base selectors
-export const selectTeams = createSelector(
-  selectLeagueState,
-  (state: LeagueState) => state.teams
-);
+/* Hover effects */
+.hover-lift {
+  @apply transition-transform duration-300 hover:transform hover:-translate-y-1;
+}
 
-export const selectMatches = createSelector(
-  selectLeagueState,
-  (state: LeagueState) => state.matches
-);
-
-export const selectCurrentWeek = createSelector(
-  selectLeagueState,
-  (state: LeagueState) => state.currentWeek
-);
-
-export const selectIsSeasonFinished = createSelector(
-  selectLeagueState,
-  (state: LeagueState) => state.isSeasonFinished
-);
-
-export const selectChampion = createSelector(
-  selectLeagueState,
-  (state: LeagueState) => state.champion
-);
-
-export const selectLoading = createSelector(
-  selectLeagueState,
-  (state: LeagueState) => state.loading
-);
-
-export const selectError = createSelector(
-  selectLeagueState,
-  (state: LeagueState) => state.error
-);
-
-// Complex selectors
-export const selectCurrentStandings = createSelector(
-  selectLeagueState,
-  (state: LeagueState) => state.standings
-);
-
-export const selectWeeklyMatches = createSelector(
-  selectLeagueState,
-  (state: LeagueState) => state.weeklyMatches
-);
-
-export const selectCurrentWeekMatches = createSelector(
-  selectWeeklyMatches,
-  selectCurrentWeek,
-  (weeklyMatches, currentWeek) => 
-    weeklyMatches.find(wm => wm.week === currentWeek)
-);
-
-export const selectPlayedMatches = createSelector(
-  selectMatches,
-  (matches) => matches.filter(match => match.isPlayed).length
-);
-
-export const selectTotalMatches = createSelector(
-  selectMatches,
-  (matches) => matches.length
-);
-
-export const selectLeagueProgress = createSelector(
-  selectPlayedMatches,
-  selectTotalMatches,
-  (played, total) => total > 0 ? (played / total) * 100 : 0
-);
+/* Gradient backgrounds */
+.gradient-bg {
+  @apply bg-gradient-to-br from-blue-50 to-indigo-100;
+}
 ```
 
-### 🎯 Selector Usage Examples
+#### **Custom Components:**
+```css
+/* Custom button styles */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+}
 
-```typescript
-// Component'te kullanım
-export class LeagueDashboardComponent implements OnInit {
-  // Observable selectors
-  currentStandings$ = this.store.select(selectCurrentStandings);
-  currentWeekMatches$ = this.store.select(selectCurrentWeekMatches);
-  isSeasonFinished$ = this.store.select(selectIsSeasonFinished);
-  champion$ = this.store.select(selectChampion);
-  loading$ = this.store.select(selectLoading);
-  error$ = this.store.select(selectError);
+.btn-secondary {
+  @apply bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+}
+```
+
+### 🎯 SCSS
+
+#### **Variables:**
+```scss
+// _variables.scss
+$primary-color: #3b82f6;
+$secondary-color: #6b7280;
+$success-color: #16a34a;
+$warning-color: #d97706;
+$danger-color: #dc2626;
+
+$border-radius: 0.375rem;
+$box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+$transition: all 0.3s ease;
+```
+
+#### **Mixins:**
+```scss
+// _mixins.scss
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin hover-lift {
+  transition: transform 0.3s ease;
   
-  // Computed values
-  playedMatches$ = this.store.select(selectPlayedMatches);
-  totalMatches$ = this.store.select(selectTotalMatches);
-  leagueProgress$ = this.store.select(selectLeagueProgress);
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@mixin responsive-grid($columns: 1) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: 1rem;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat($columns * 2, 1fr);
+  }
+  
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat($columns * 3, 1fr);
+  }
+}
+```
+
+### 🎯 CSS Animations
+
+#### **Keyframes:**
+```scss
+// _animations.scss
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+```
+
+#### **Animation Classes:**
+```scss
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+.bounce {
+  animation: bounce 2s infinite;
+}
+```
+
+---
+
+## 🔍 Debugging
+
+### 🎯 Angular DevTools
+
+#### **Kurulum:**
+```bash
+# Chrome Extension
+# https://chrome.google.com/webstore/detail/angular-devtools
+
+# veya npm ile
+npm install -g @angular/devtools
+```
+
+#### **Kullanım:**
+```typescript
+// Component'te debugging
+export class LeagueDashboardComponent {
+  ngOnInit() {
+    // DevTools'ta görünecek
+    console.log('Component initialized');
+    
+    // State'i inspect et
+    this.store.select(selectLeagueState).subscribe(state => {
+      console.log('Current state:', state);
+    });
+  }
+}
+```
+
+### 🎯 Console Debugging
+
+#### **Debug Helpers:**
+```typescript
+// debug.helpers.ts
+export function debugLog(message: string, data?: any) {
+  if (!environment.production) {
+    console.log(`[DEBUG] ${message}`, data);
+  }
+}
+
+export function debugError(message: string, error: any) {
+  if (!environment.production) {
+    console.error(`[ERROR] ${message}`, error);
+  }
+}
+
+export function debugWarn(message: string, data?: any) {
+  if (!environment.production) {
+    console.warn(`[WARN] ${message}`, data);
+  }
+}
+```
+
+#### **Component'te Kullanım:**
+```typescript
+import { debugLog, debugError } from '../utils/debug.helpers';
+
+export class LeagueDashboardComponent {
+  ngOnInit() {
+    debugLog('League Dashboard initialized');
+    
+    this.store.select(selectCurrentStandings).subscribe({
+      next: (standings) => {
+        debugLog('Standings updated', standings);
+      },
+      error: (error) => {
+        debugError('Error loading standings', error);
+      }
+    });
+  }
+}
+```
+
+### 🎯 Network Debugging
+
+#### **HTTP Interceptor:**
+```typescript
+@Injectable()
+export class DebugInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    if (!environment.production) {
+      console.log('HTTP Request:', req);
+    }
+    
+    return next.handle(req).pipe(
+      tap(event => {
+        if (!environment.production && event instanceof HttpResponse) {
+          console.log('HTTP Response:', event);
+        }
+      })
+    );
+  }
+}
+```
+
+---
+
+## 📱 Responsive Geliştirme
+
+### 🎯 Mobile First Approach
+
+#### **Breakpoint Strategy:**
+```scss
+// Mobile first approach
+.component {
+  // Mobile styles (default)
+  padding: 1rem;
+  font-size: 1rem;
+  
+  // Tablet
+  @media (min-width: 768px) {
+    padding: 1.5rem;
+    font-size: 1.125rem;
+  }
+  
+  // Desktop
+  @media (min-width: 1024px) {
+    padding: 2rem;
+    font-size: 1.25rem;
+  }
+  
+  // Large desktop
+  @media (min-width: 1280px) {
+    padding: 2.5rem;
+    font-size: 1.5rem;
+  }
+}
+```
+
+#### **Grid System:**
+```scss
+.responsive-grid {
+  display: grid;
+  gap: 1rem;
+  
+  // Mobile: 1 column
+  grid-template-columns: 1fr;
+  
+  // Tablet: 2 columns
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  // Desktop: 3 columns
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  // Large desktop: 4 columns
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+```
+
+### 🎯 Touch Optimization
+
+#### **Touch Targets:**
+```scss
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.75rem;
+  
+  // Hover effects for touch devices
+  @media (hover: hover) {
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+```
+
+#### **Swipe Gestures:**
+```typescript
+// Swipe directive
+@Directive({
+  selector: '[appSwipe]'
+})
+export class SwipeDirective {
+  @Output() swipeLeft = new EventEmitter();
+  @Output() swipeRight = new EventEmitter();
+  
+  private startX = 0;
+  private startY = 0;
+  
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(event: TouchEvent) {
+    this.startX = event.touches[0].clientX;
+    this.startY = event.touches[0].clientY;
+  }
+  
+  @HostListener('touchend', ['$event'])
+  onTouchEnd(event: TouchEvent) {
+    const endX = event.changedTouches[0].clientX;
+    const endY = event.changedTouches[0].clientY;
+    
+    const diffX = this.startX - endX;
+    const diffY = this.startY - endY;
+    
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 50) {
+        this.swipeLeft.emit();
+      } else if (diffX < -50) {
+        this.swipeRight.emit();
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🚀 Build ve Deployment
+
+### 🎯 Build Konfigürasyonu
+
+#### **Production Build:**
+```bash
+# Production build
+ng build --configuration production
+
+# Build with stats
+ng build --configuration production --stats-json
+
+# Build analysis
+npx webpack-bundle-analyzer dist/futbol-ligi-simulasyonu/stats.json
+```
+
+#### **Build Optimization:**
+```json
+// angular.json
+{
+  "configurations": {
+    "production": {
+      "budgets": [
+        {
+          "type": "initial",
+          "maximumWarning": "500kb",
+          "maximumError": "1mb"
+        },
+        {
+          "type": "anyComponentStyle",
+          "maximumWarning": "2kb",
+          "maximumError": "4kb"
+        }
+      ],
+      "outputHashing": "all",
+      "sourceMap": false,
+      "namedChunks": false,
+      "aot": true,
+      "extractLicenses": true,
+      "vendorChunk": false,
+      "buildOptimizer": true
+    }
+  }
+}
+```
+
+### 🎯 Deployment Strategies
+
+#### **Static Hosting (Netlify/Vercel):**
+```bash
+# Build
+ng build --configuration production
+
+# Deploy to Netlify
+netlify deploy --prod --dir=dist/futbol-ligi-simulasyonu
+
+# Deploy to Vercel
+vercel --prod
+```
+
+#### **Docker Deployment:**
+```dockerfile
+# Dockerfile
+FROM node:20-alpine AS build
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY . .
+RUN npm run build --configuration production
+
+FROM nginx:alpine
+COPY --from=build /app/dist/futbol-ligi-simulasyonu /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### **Nginx Konfigürasyonu:**
+```nginx
+# nginx.conf
+server {
+    listen 80;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+```
+
+---
+
+## 📚 Best Practices
+
+### 🎯 Code Organization
+
+#### **File Naming:**
+```
+src/app/
+├── components/           # Reusable components
+│   ├── button/
+│   │   ├── button.component.ts
+│   │   ├── button.component.html
+│   │   ├── button.component.scss
+│   │   └── button.component.spec.ts
+│   └── modal/
+├── services/            # Business logic
+│   ├── api.service.ts
+│   └── auth.service.ts
+├── models/              # Type definitions
+│   ├── user.model.ts
+│   └── api.model.ts
+├── utils/               # Utility functions
+│   ├── helpers.ts
+│   └── constants.ts
+└── shared/              # Shared modules
+    ├── pipes/
+    └── directives/
+```
+
+#### **Import Organization:**
+```typescript
+// 1. Angular imports
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+// 2. Third-party imports
+import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+
+// 3. Internal imports
+import { Team } from '../models/team.model';
+import { LeagueService } from '../services/league.service';
+import { selectCurrentStandings } from '../store/selectors';
+```
+
+### 🎯 Error Handling
+
+#### **Global Error Handler:**
+```typescript
+@Injectable()
+export class GlobalErrorHandler implements ErrorHandler {
+  handleError(error: any): void {
+    console.error('Global error:', error);
+    
+    // Log to external service
+    this.logError(error);
+    
+    // Show user-friendly message
+    this.showErrorMessage();
+  }
+  
+  private logError(error: any): void {
+    // Send to logging service
+  }
+  
+  private showErrorMessage(): void {
+    // Show toast notification
+  }
+}
+```
+
+#### **Component Error Handling:**
+```typescript
+export class LeagueDashboardComponent {
+  error$ = this.store.select(selectError);
   
   constructor(private store: Store<AppState>) {}
   
   ngOnInit() {
-    // Selector'ları subscribe et
-    this.currentStandings$.subscribe(standings => {
-      console.log('Current standings:', standings);
+    this.error$.subscribe(error => {
+      if (error) {
+        this.handleError(error);
+      }
     });
   }
+  
+  private handleError(error: string): void {
+    // Show error message to user
+    console.error('Component error:', error);
+  }
 }
 ```
 
----
+### 🎯 Performance Best Practices
 
-## ⚡ NgRx Effects
-
-### 🔄 Effect Definitions
-
-```typescript
-// league.effects.ts
-@Injectable()
-export class LeagueEffects {
-  
-  constructor(
-    private actions$: Actions,
-    private leagueService: LeagueSimulationService
-  ) {}
-  
-  // Lig başlatma effect
-  initializeLeague$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(LeagueActions.initializeLeague),
-      switchMap(() =>
-        this.leagueService.initializeLeague().pipe(
-          map(({ teams, matches }) => 
-            LeagueActions.initializeLeagueSuccess({ teams, matches })
-          ),
-          catchError(error => 
-            of(LeagueActions.initializeLeagueFailure({ 
-              error: error.message 
-            }))
-          )
-        )
-      )
-    )
-  );
-  
-  // Haftalık maç oynatma effect
-  playSpecificWeek$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(LeagueActions.playSpecificWeek),
-      switchMap(({ week }) =>
-        this.leagueService.playSpecificWeek(week).pipe(
-          map(matches => 
-            LeagueActions.playSpecificWeekSuccess({ matches })
-          ),
-          catchError(error => 
-            of(LeagueActions.playSpecificWeekFailure({ 
-              error: error.message 
-            }))
-          )
-        )
-      )
-    )
-  );
-  
-  // Tüm sezon oynatma effect
-  playAllSeason$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(LeagueActions.playAllSeason),
-      switchMap(() =>
-        this.leagueService.playAllSeason().pipe(
-          map(({ matches, champion }) => 
-            LeagueActions.playAllSeasonSuccess({ matches, champion })
-          ),
-          catchError(error => 
-            of(LeagueActions.playAllSeasonFailure({ 
-              error: error.message 
-            }))
-          )
-        )
-      )
-    )
-  );
-  
-  // Lig sıfırlama effect
-  resetLeague$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(LeagueActions.resetLeague),
-      switchMap(() =>
-        this.leagueService.resetLeague().pipe(
-          map(() => LeagueActions.resetLeagueSuccess()),
-          catchError(error => 
-            of(LeagueActions.resetLeagueFailure({ 
-              error: error.message 
-            }))
-          )
-        )
-      )
-    )
-  );
-  
-  // Maç sonucu düzenleme effect
-  editMatchResult$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(LeagueActions.editMatchResult),
-      switchMap(({ matchId, homeScore, awayScore }) =>
-        this.leagueService.editMatchResult(matchId, homeScore, awayScore).pipe(
-          map(match => 
-            LeagueActions.editMatchResultSuccess({ match })
-          ),
-          catchError(error => 
-            of(LeagueActions.editMatchResultFailure({ 
-              error: error.message 
-            }))
-          )
-        )
-      )
-    )
-  );
-}
-```
-
----
-
-## 🔄 NgRx Reducers
-
-### 📊 Reducer Implementation
-
-```typescript
-// league.reducer.ts
-export const leagueReducer = createReducer(
-  initialLeagueState,
-  
-  // Lig başlatma
-  on(LeagueActions.initializeLeague, (state) => ({
-    ...state,
-    loading: true,
-    error: null
-  })),
-  
-  on(LeagueActions.initializeLeagueSuccess, (state, { teams, matches }) => ({
-    ...state,
-    teams,
-    matches,
-    standings: calculateStandings(teams, matches),
-    weeklyMatches: groupMatchesByWeek(matches),
-    loading: false,
-    error: null,
-    currentWeek: 1,
-    isSeasonFinished: false,
-    champion: null
-  })),
-  
-  on(LeagueActions.initializeLeagueFailure, (state, { error }) => ({
-    ...state,
-    loading: false,
-    error
-  })),
-  
-  // Haftalık maç oynatma
-  on(LeagueActions.playSpecificWeek, (state) => ({
-    ...state,
-    loading: true,
-    error: null
-  })),
-  
-  on(LeagueActions.playSpecificWeekSuccess, (state, { matches }) => {
-    const updatedMatches = [...state.matches, ...matches];
-    const updatedStandings = calculateStandings(state.teams, updatedMatches);
-    const isFinished = updatedMatches.length >= state.totalWeeks * 2;
-    const champion = isFinished ? updatedStandings[0]?.team : null;
-    
-    return {
-      ...state,
-      matches: updatedMatches,
-      standings: updatedStandings,
-      weeklyMatches: groupMatchesByWeek(updatedMatches),
-      currentWeek: Math.min(state.currentWeek + 1, state.totalWeeks),
-      isSeasonFinished: isFinished,
-      champion,
-      loading: false,
-      error: null
-    };
-  }),
-  
-  on(LeagueActions.playSpecificWeekFailure, (state, { error }) => ({
-    ...state,
-    loading: false,
-    error
-  })),
-  
-  // Tüm sezon oynatma
-  on(LeagueActions.playAllSeason, (state) => ({
-    ...state,
-    loading: true,
-    error: null
-  })),
-  
-  on(LeagueActions.playAllSeasonSuccess, (state, { matches, champion }) => ({
-    ...state,
-    matches,
-    standings: calculateStandings(state.teams, matches),
-    weeklyMatches: groupMatchesByWeek(matches),
-    currentWeek: state.totalWeeks,
-    isSeasonFinished: true,
-    champion,
-    loading: false,
-    error: null
-  })),
-  
-  on(LeagueActions.playAllSeasonFailure, (state, { error }) => ({
-    ...state,
-    loading: false,
-    error
-  })),
-  
-  // Lig sıfırlama
-  on(LeagueActions.resetLeague, (state) => ({
-    ...state,
-    loading: true,
-    error: null
-  })),
-  
-  on(LeagueActions.resetLeagueSuccess, (state) => ({
-    ...state,
-    matches: [],
-    standings: [],
-    weeklyMatches: [],
-    currentWeek: 1,
-    isSeasonFinished: false,
-    champion: null,
-    loading: false,
-    error: null
-  })),
-  
-  // Maç sonucu düzenleme
-  on(LeagueActions.editMatchResult, (state) => ({
-    ...state,
-    loading: true,
-    error: null
-  })),
-  
-  on(LeagueActions.editMatchResultSuccess, (state, { match }) => {
-    const updatedMatches = state.matches.map(m => 
-      m.id === match.id ? match : m
-    );
-    const updatedStandings = calculateStandings(state.teams, updatedMatches);
-    
-    return {
-      ...state,
-      matches: updatedMatches,
-      standings: updatedStandings,
-      weeklyMatches: groupMatchesByWeek(updatedMatches),
-      loading: false,
-      error: null
-    };
-  }),
-  
-  on(LeagueActions.editMatchResultFailure, (state, { error }) => ({
-    ...state,
-    loading: false,
-    error
-  })),
-  
-  // UI durumu
-  on(LeagueActions.setLoading, (state, { loading }) => ({
-    ...state,
-    loading
-  })),
-  
-  on(LeagueActions.setError, (state, { error }) => ({
-    ...state,
-    error
-  }))
-);
-```
-
----
-
-## 🎨 Component API'ları
-
-### 🏆 LeagueDashboardComponent
-
+#### **OnPush Strategy:**
 ```typescript
 @Component({
-  selector: 'app-league-dashboard',
-  standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule, ProgressBarModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LeagueDashboardComponent implements OnInit, OnDestroy {
-  
-  // Public properties
-  currentStandings$: Observable<TeamStats[]>;
-  currentWeekMatches$: Observable<WeekMatches | undefined>;
-  isSeasonFinished$: Observable<boolean>;
-  champion$: Observable<Team | null>;
-  loading$: Observable<boolean>;
-  error$: Observable<string | null>;
-  
-  // Private properties
+export class OptimizedComponent {
+  // Component sadece input değişikliklerinde güncellenir
+}
+```
+
+#### **TrackBy Functions:**
+```typescript
+// Template'te
+<div *ngFor="let team of teams; trackBy: trackByTeamId">
+  {{ team.name }}
+</div>
+
+// Component'te
+trackByTeamId(index: number, team: Team): number {
+  return team.id;
+}
+```
+
+#### **Async Pipe:**
+```typescript
+// Template'te
+<div *ngIf="standings$ | async as standings">
+  {{ standings.length }} teams
+</div>
+
+// Component'te
+standings$ = this.store.select(selectCurrentStandings);
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### 🎯 Common Issues
+
+#### **1. Build Errors:**
+```bash
+# TypeScript errors
+ng build --verbose
+
+# Clear cache
+rm -rf node_modules package-lock.json
+npm install
+
+# Update dependencies
+ng update @angular/cli @angular/core
+```
+
+#### **2. Runtime Errors:**
+```typescript
+// Null check
+if (this.standings && this.standings.length > 0) {
+  // Safe to use standings
+}
+
+// Optional chaining
+const teamName = this.team?.name ?? 'Unknown';
+```
+
+#### **3. Memory Leaks:**
+```typescript
+export class Component implements OnDestroy {
   private destroy$ = new Subject<void>();
   
-  constructor(
-    private store: Store<AppState>,
-    private cdr: ChangeDetectorRef
-  ) {
-    // Selector'ları initialize et
-    this.currentStandings$ = this.store.select(selectCurrentStandings);
-    this.currentWeekMatches$ = this.store.select(selectCurrentWeekMatches);
-    this.isSeasonFinished$ = this.store.select(selectIsSeasonFinished);
-    this.champion$ = this.store.select(selectChampion);
-    this.loading$ = this.store.select(selectLoading);
-    this.error$ = this.store.select(selectError);
+  ngOnInit() {
+    this.store.select(selectData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => {
+        // Handle data
+      });
   }
   
-  // Public methods
-  ngOnInit(): void {
-    this.initializeLeague();
-  }
-  
-  ngOnDestroy(): void {
+  ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
   }
-  
-  // Lig başlatma
-  initializeLeague(): void {
-    this.store.dispatch(LeagueActions.initializeLeague());
-  }
-  
-  // Haftalık maç oynatma
-  playSpecificWeek(week: number): void {
-    this.store.dispatch(LeagueActions.playSpecificWeek({ week }));
-  }
-  
-  // Tüm sezonu oynatma
-  playAllSeason(): void {
-    this.store.dispatch(LeagueActions.playAllSeason());
-  }
-  
-  // Lig sıfırlama
-  resetLeague(): void {
-    this.store.dispatch(LeagueActions.resetLeague());
-  }
-  
-  // Hafta seçimi
-  selectWeek(week: number): void {
-    this.selectedWeekForMatches = week;
-  }
-  
-  // Utility methods
-  getPlayedMatches(): number {
-    // Oynanan maç sayısını hesapla
-  }
-  
-  getTotalMatches(): number {
-    // Toplam maç sayısını hesapla
-  }
-  
-  getNextWeekButtonText(): string {
-    // Sonraki hafta buton metnini hesapla
-  }
-  
-  isSeasonFinished(): boolean {
-    // Sezon bitti mi kontrol et
-  }
-  
-  getSeasonStatus(): string {
-    // Sezon durumunu hesapla
-  }
-  
-  getLeagueControlStatus(): string {
-    // Lig kontrol durumunu hesapla
-  }
 }
 ```
 
-### 📊 StandingsTableComponent
+### 🎯 Debugging Tools
 
-```typescript
-@Component({
-  selector: 'app-standings-table',
-  standalone: true,
-  imports: [CommonModule, TableModule],
-  changeDetection: ChangeDetectionStrategy.OnPush
-})
-export class StandingsTableComponent implements OnInit {
-  
-  @Input() standings: TeamStats[] = [];
-  @Input() isSeasonFinished: boolean = false;
-  @Output() teamSelected = new EventEmitter<Team>();
-  
-  // Properties
-  sortField: string = 'position';
-  sortDirection: 'asc' | 'desc' = 'asc';
-  filteredStandings: TeamStats[] = [];
-  
-  constructor(private cdr: ChangeDetectorRef) {}
-  
-  ngOnInit(): void {
-    this.filteredStandings = [...this.standings];
-  }
-  
-  // Public methods
-  sortBy(field: string): void {
-    if (this.sortField === field) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortField = field;
-      this.sortDirection = 'asc';
-    }
-    
-    this.applySorting();
-  }
-  
-  onTeamClick(team: Team): void {
-    this.teamSelected.emit(team);
-  }
-  
-  // Utility methods
-  getPositionClass(position: number): string {
-    // Pozisyon sınıfını hesapla
-  }
-  
-  getTeamColor(team: Team): string {
-    // Takım rengini hesapla
-  }
-  
-  getGoalPercentage(goalsFor: number, goalsAgainst: number): number {
-    // Gol yüzdesini hesapla
-  }
-  
-  getPointsPercentage(points: number, maxPoints: number): number {
-    // Puan yüzdesini hesapla
-  }
-  
-  private applySorting(): void {
-    // Sıralama uygula
-  }
-}
-```
+#### **Angular DevTools:**
+- Component tree inspection
+- State management debugging
+- Performance profiling
 
-### ⚽ MatchResultsComponent
+#### **Browser DevTools:**
+- Network tab for API calls
+- Console for error messages
+- Performance tab for bottlenecks
 
-```typescript
-@Component({
-  selector: 'app-match-results',
-  standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule, InputNumberModule],
-  changeDetection: ChangeDetectionStrategy.OnPush
-})
-export class MatchResultsComponent implements OnInit {
-  
-  @Input() weeklyMatches: WeekMatches[] = [];
-  @Input() selectedWeek: number = 1;
-  @Output() weekChanged = new EventEmitter<number>();
-  @Output() matchResultEdited = new EventEmitter<{ matchId: number; homeScore: number; awayScore: number }>();
-  
-  // Properties
-  currentWeekMatches: WeekMatches | undefined;
-  editingMatch: Match | null = null;
-  
-  constructor(private cdr: ChangeDetectorRef) {}
-  
-  ngOnInit(): void {
-    this.updateCurrentWeekMatches();
-  }
-  
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedWeek'] || changes['weeklyMatches']) {
-      this.updateCurrentWeekMatches();
-    }
-  }
-  
-  // Public methods
-  selectWeek(week: number): void {
-    this.selectedWeek = week;
-    this.weekChanged.emit(week);
-    this.updateCurrentWeekMatches();
-  }
-  
-  editMatch(match: Match): void {
-    this.editingMatch = { ...match };
-  }
-  
-  saveMatchResult(): void {
-    if (this.editingMatch) {
-      this.matchResultEdited.emit({
-        matchId: this.editingMatch.id,
-        homeScore: this.editingMatch.homeScore || 0,
-        awayScore: this.editingMatch.awayScore || 0
-      });
-      this.editingMatch = null;
-    }
-  }
-  
-  cancelEdit(): void {
-    this.editingMatch = null;
-  }
-  
-  // Utility methods
-  getMatchResultClass(match: Match): string {
-    // Maç sonucu sınıfını hesapla
-  }
-  
-  getWeekStatus(week: number): string {
-    // Hafta durumunu hesapla
-  }
-  
-  private updateCurrentWeekMatches(): void {
-    this.currentWeekMatches = this.weeklyMatches.find(wm => wm.week === this.selectedWeek);
-    this.cdr.markForCheck();
-  }
-}
-```
+#### **Lighthouse:**
+```bash
+# Install Lighthouse
+npm install -g lighthouse
 
----
-
-## 📝 Type Definitions
-
-### 🎯 Utility Types
-
-```typescript
-// Generic types
-export type SortDirection = 'asc' | 'desc';
-export type SortField = 'position' | 'team' | 'played' | 'won' | 'drawn' | 'lost' | 'goalsFor' | 'goalsAgainst' | 'goalDifference' | 'points';
-
-// Event types
-export interface TeamSelectedEvent {
-  team: Team;
-  position: number;
-}
-
-export interface MatchEditedEvent {
-  matchId: number;
-  homeScore: number;
-  awayScore: number;
-}
-
-// Configuration types
-export interface LeagueConfig {
-  totalTeams: number;
-  totalWeeks: number;
-  matchesPerWeek: number;
-  pointsWin: number;
-  pointsDraw: number;
-  pointsLoss: number;
-}
-
-// API response types
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message?: string;
-  error?: string;
-}
-
-export interface LeagueInitializationResponse {
-  teams: Team[];
-  matches: Match[];
-  standings: TeamStats[];
-}
-```
-
-### 🎯 Enum Definitions
-
-```typescript
-export enum LeagueStatus {
-  NOT_STARTED = 'NOT_STARTED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  FINISHED = 'FINISHED'
-}
-
-export enum MatchStatus {
-  NOT_PLAYED = 'NOT_PLAYED',
-  PLAYED = 'PLAYED',
-  CANCELLED = 'CANCELLED'
-}
-
-export enum TeamPosition {
-  CHAMPION = 1,
-  EUROPA_LEAGUE = 2,
-  CONFERENCE_LEAGUE = 3,
-  RELEGATION = 4
-}
-```
-
----
-
-## 🔍 Utility Functions
-
-### 🎯 Helper Functions
-
-```typescript
-// league.utils.ts
-
-/**
- * Maçları haftalara göre gruplar
- * @param matches - Tüm maçlar
- * @returns WeekMatches[] - Haftalık maçlar
- */
-export function groupMatchesByWeek(matches: Match[]): WeekMatches[] {
-  const weeklyMatches: { [week: number]: Match[] } = {};
-  
-  matches.forEach(match => {
-    if (!weeklyMatches[match.week]) {
-      weeklyMatches[match.week] = [];
-    }
-    weeklyMatches[match.week].push(match);
-  });
-  
-  return Object.keys(weeklyMatches).map(week => ({
-    week: parseInt(week),
-    matches: weeklyMatches[parseInt(week)]
-  })).sort((a, b) => a.week - b.week);
-}
-
-/**
- * Puan tablosunu hesaplar
- * @param teams - Takım listesi
- * @param matches - Tüm maçlar
- * @returns TeamStats[] - Puan tablosu
- */
-export function calculateStandings(teams: Team[], matches: Match[]): TeamStats[] {
-  const teamStats = teams.map(team => calculateTeamStats(team, matches));
-  
-  // Sıralama: Puan > Averaj > Attığı gol
-  return teamStats.sort((a, b) => {
-    if (b.points !== a.points) return b.points - a.points;
-    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-    return b.goalsFor - a.goalsFor;
-  }).map((stats, index) => ({
-    ...stats,
-    position: index + 1
-  }));
-}
-
-/**
- * Takım istatistiklerini hesaplar
- * @param team - Takım
- * @param matches - Tüm maçlar
- * @returns TeamStats - Takım istatistikleri
- */
-export function calculateTeamStats(team: Team, matches: Match[]): TeamStats {
-  const teamMatches = matches.filter(match => 
-    match.homeTeam.id === team.id || match.awayTeam.id === team.id
-  );
-  
-  let played = 0, won = 0, drawn = 0, lost = 0;
-  let goalsFor = 0, goalsAgainst = 0;
-  
-  teamMatches.forEach(match => {
-    if (match.isPlayed && match.homeScore !== null && match.awayScore !== null) {
-      played++;
-      
-      const isHome = match.homeTeam.id === team.id;
-      const teamScore = isHome ? match.homeScore : match.awayScore;
-      const opponentScore = isHome ? match.awayScore : match.homeScore;
-      
-      goalsFor += teamScore;
-      goalsAgainst += opponentScore;
-      
-      if (teamScore > opponentScore) won++;
-      else if (teamScore === opponentScore) drawn++;
-      else lost++;
-    }
-  });
-  
-  const points = won * LEAGUE_CONSTANTS.POINTS_WIN + 
-                 drawn * LEAGUE_CONSTANTS.POINTS_DRAW + 
-                 lost * LEAGUE_CONSTANTS.POINTS_LOSS;
-  
-  return {
-    team,
-    position: 0, // Sıralama ayrıca hesaplanacak
-    played,
-    won,
-    drawn,
-    lost,
-    goalsFor,
-    goalsAgainst,
-    goalDifference: goalsFor - goalsAgainst,
-    points
-  };
-}
-
-/**
- * UEFA pozisyon sınıfını hesaplar
- * @param position - Takım pozisyonu
- * @returns string - CSS sınıfı
- */
-export function getPositionClass(position: number): string {
-  switch (position) {
-    case 1:
-      return 'bg-gradient-to-r from-yellow-50 to-amber-100 border-l-4 border-yellow-500 hover:from-yellow-100 hover:to-amber-200';
-    case 2:
-      return 'bg-gradient-to-r from-green-50 to-emerald-100 border-l-4 border-green-500 hover:from-green-100 hover:to-emerald-200';
-    case 3:
-      return 'bg-gradient-to-r from-blue-50 to-indigo-100 border-l-4 border-blue-500 hover:from-blue-100 hover:to-indigo-200';
-    case 4:
-      return 'bg-gradient-to-r from-red-50 to-rose-100 border-l-4 border-red-500 hover:from-red-100 hover:to-rose-200';
-    default:
-      return 'hover:bg-gray-50';
-  }
-}
-
-/**
- * Takım rengini hesaplar
- * @param team - Takım
- * @returns string - CSS rengi
- */
-export function getTeamColor(team: Team): string {
-  return team.color || '#6b7280';
-}
-
-/**
- * Gol yüzdesini hesaplar
- * @param goalsFor - Attığı gol
- * @param goalsAgainst - Yediği gol
- * @returns number - Yüzde
- */
-export function getGoalPercentage(goalsFor: number, goalsAgainst: number): number {
-  const total = goalsFor + goalsAgainst;
-  return total > 0 ? (goalsFor / total) * 100 : 0;
-}
-
-/**
- * Puan yüzdesini hesaplar
- * @param points - Mevcut puan
- * @param maxPoints - Maksimum puan
- * @returns number - Yüzde
- */
-export function getPointsPercentage(points: number, maxPoints: number): number {
-  return maxPoints > 0 ? (points / maxPoints) * 100 : 0;
-}
+# Run audit
+lighthouse http://localhost:4200 --output html --output-path ./lighthouse-report.html
 ```
 
 ---
 
 ## 🎉 Sonuç
 
-Bu API dokümantasyonu, projedeki tüm servisler, modeller ve API'ları kapsamlı olarak açıklar. Her bir bileşenin nasıl kullanılacağı, hangi parametreleri aldığı ve ne döndürdüğü detaylı olarak belirtilmiştir.
+Bu geliştirme rehberi, projenin tüm geliştirme süreçlerini kapsamlı olarak açıklar. Bu rehberi takip ederek, modern Angular 20 uygulamaları geliştirebilir, test edebilir ve deploy edebilirsiniz.
 
-### 🌟 API Avantajları
+### 🌟 Geliştirme Avantajları
 
-1. **Type Safety** - TypeScript ile tam tip güvenliği
-2. **Reactive Programming** - RxJS ile asenkron veri yönetimi
-3. **State Management** - NgRx ile merkezi state yönetimi
-4. **Modular Design** - Her servis bağımsız ve test edilebilir
-5. **Clean API** - Anlaşılır ve kullanımı kolay API'lar
+1. **Modern Tooling** - En güncel geliştirme araçları
+2. **Best Practices** - Endüstri standartları
+3. **Performance** - Optimize edilmiş performans
+4. **Maintainability** - Sürdürülebilir kod yapısı
+5. **Scalability** - Ölçeklenebilir mimari
 
 ### 🚀 Gelecek Geliştirmeler
 
-- [ ] **API Documentation** (Swagger/OpenAPI)
-- [ ] **GraphQL** integration
-- [ ] **Real-time API** (WebSocket)
-- [ ] **API Versioning**
-- [ ] **Rate Limiting**
+- [ ] **CI/CD Pipeline** (GitHub Actions)
+- [ ] **Automated Testing** (E2E)
+- [ ] **Performance Monitoring** (Web Vitals)
+- [ ] **Error Tracking** (Sentry)
+- [ ] **Analytics** (Google Analytics)
 
 ---
 
-**🎯 Bu API dokümantasyonu, geliştiricilerin projeyi kolayca anlayıp geliştirebilmesi için hazırlanmıştır.**
+**🎯 Bu rehber, modern web geliştirme standartlarını karşılayan, profesyonel bir geliştirme süreci sunar.**
 
