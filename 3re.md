@@ -590,6 +590,43 @@ initializeLeague$ = createEffect(() =>
 - **Type-safe**: Prevents runtime errors
 - **Performance**: Optimized for speed
 
+## 📋 Yazılım Geliştirme Standartları
+
+### **Proje Yapısı Standartları:**
+- **Common**: Genel servisler, interceptors, guards
+- **Core**: Component-specific interface, service, store tanımları
+- **Modules**: Sayfa componentleri
+- **Shared**: Ortak kullanılan componentler, pipe'lar
+- **Assets**: CSS tanımları ve görseller
+- **Environments**: API base, port, prefix tanımları
+
+### **Component Yapısı Standartları:**
+```typescript
+// Component .ts içerisindeki blok hiyerarşisi:
+// 1. Değişkenler
+// 2. Constructor
+// 3. Lifecycle Metodlar
+// 4. Custom Metodlar
+// 5. Submit metodu (varsa)
+// 6. OnDestroy
+```
+
+### **İsimlendirme Standartları:**
+- **Methodlar**: camelCase (getUserInfo, calculateTotalPrice)
+- **Sınıflar**: PascalCase (UserService, AppComponent)
+- **Değişkenler**: camelCase (userName, totalAmount)
+- **Interface'ler**: PascalCase (IUser, Product)
+- **Dosya İsimleri**: kebab-case (user-profile.component.ts)
+- **Component Selectors**: kebab-case (app-user-profile)
+- **Boolean Değerler**: is/has/can ile başla (isLoggedIn, hasAccess)
+
+### **Kod Kalitesi Standartları:**
+- Console.log ve dummy data temizlenmelidir
+- Anlamsız yorum satırları kaldırılmalıdır
+- ESLint kurallarına uyulmalıdır
+- Prettier ile formatlanmalıdır
+- Unit testler yazılmalıdır
+
 Bu mimari yaklaşım sayesinde proje gelecekte kolayca genişletilebilir ve yeni özellikler eklenebilir. Her katman kendi sorumluluğuna sahip olduğu için değişiklikler izole edilebilir ve test edilebilir.
 
-**Modern Angular uygulaması için ideal bir arquitecture! 🏗️**
+**Modern Angular uygulaması için ideal bir architecture! 🏗️**
