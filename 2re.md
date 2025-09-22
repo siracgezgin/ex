@@ -406,7 +406,7 @@ export class LeagueDashboardComponent implements OnInit, OnDestroy {
 
 ```bash
 # 1. Angular CLI kurulumu
-npm install -g @angular/cli@20
+npm install -g @angular/cli@20.0.0
 
 # 2. Yeni proje oluşturma
 ng new futbol-ligi-simulasyonu --routing --style=scss --skip-git
@@ -419,6 +419,7 @@ npm install @ngrx/store@20 @ngrx/effects@20 @ngrx/store-devtools@20
 npm install primeng@19 primeicons@7
 npm install bootstrap@5.3.7
 npm install -D tailwindcss@3.0 autoprefixer@10.4.21 postcss@8.5.6
+npm install @tabler/icons@3.34.1
 
 # 5. Tailwind CSS kurulumu
 npx tailwindcss init
@@ -673,7 +674,7 @@ initializeLeague$ = createEffect(() =>
 ```typescript
 // OnPush Change Detection
 @Component({
-  selector: 'app-league-dashboard',
+  selector: 'app-standings-table',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 
@@ -708,6 +709,64 @@ function sortBy<T>(array: T[], key: keyof T): T[] {
 // Union types
 type MatchStatus = 'scheduled' | 'playing' | 'finished' | 'postponed';
 ```
+
+## 📋 Yazılım Geliştirme Standartları
+
+### **Genel Kodlama İlkeleri:**
+- **Okunabilirlik**: Kod, yazan kişi dışında başka geliştiriciler tarafından da kolayca anlaşılabilir olmalıdır
+- **Tutarlılık**: Proje boyunca belirlenen kodlama standartlarına ve konvansiyonlara uyulmalıdır
+- **Yinelenebilirlik**: Ortak kod parçaları tekrarlanmamalı, DRY prensibi uygulanmalıdır
+- **Modülerlik**: Kod, küçük ve bağımsız parçalara bölünmelidir (SRP)
+- **Basitlik**: Kod mümkün olduğunca basit ve karmaşıklıktan uzak tutulmalıdır (KISS)
+- **İhtiyaca Yönelik**: Yalnızca mevcut ihtiyaçlara odaklanılmalıdır (YAGNI)
+
+### **Angular Framework Standartları:**
+- Angular 20.0.0 kullanılmalıdır
+- Angular CLI ile proje oluşturulmalıdır
+- TypeScript strict mode aktif olmalıdır
+- Component-based architecture uygulanmalıdır
+
+### **Proje Yapısı Standartları:**
+- **Common**: Genel servisler, interceptors, guards
+- **Core**: Component-specific interface, service, store tanımları
+- **Modules**: Sayfa componentleri
+- **Shared**: Ortak kullanılan componentler, pipe'lar
+- **Assets**: CSS tanımları ve görseller
+- **Environments**: API base, port, prefix tanımları
+
+### **Component Yapısı Standartları:**
+```typescript
+// Component .ts içerisindeki blok hiyerarşisi:
+// 1. Değişkenler
+// 2. Constructor
+// 3. Lifecycle Metodlar
+// 4. Custom Metodlar
+// 5. Submit metodu (varsa)
+// 6. OnDestroy
+```
+
+### **İsimlendirme Standartları:**
+- **Methodlar**: camelCase (getUserInfo, calculateTotalPrice)
+- **Sınıflar**: PascalCase (UserService, AppComponent)
+- **Değişkenler**: camelCase (userName, totalAmount)
+- **Interface'ler**: PascalCase (IUser, Product)
+- **Dosya İsimleri**: kebab-case (user-profile.component.ts)
+- **Component Selectors**: kebab-case (app-user-profile)
+- **Boolean Değerler**: is/has/can ile başla (isLoggedIn, hasAccess)
+
+### **Versiyon Kontrol Standartları:**
+- Azure DevOps kullanılmalıdır
+- Branch isimlendirme: Prefix/AzureTaskId-short-task-name
+- Commit mesajları: #AzureTaskID type(Feature||Component) : short description
+- Pull-request süreci işletilmelidir
+- Her gün sonunda commit yapılmalıdır
+
+### **Kod Kalitesi Standartları:**
+- Console.log ve dummy data temizlenmelidir
+- Anlamsız yorum satırları kaldırılmalıdır
+- ESLint kurallarına uyulmalıdır
+- Prettier ile formatlanmalıdır
+- Unit testler yazılmalıdır
 
 ## 🎯 Son Notlar
 
